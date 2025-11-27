@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Store, type Promotion, type FAQ, type Step } from "@shared/schema";
+import { type User, type InsertUser, type Store, type Promotion, type FAQ, type Step, type Testimonial, type RecentProduct, type ContactMessage, type Order } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -9,6 +9,11 @@ export interface IStorage {
   getPromotions(): Promise<Promotion[]>;
   getFAQs(): Promise<FAQ[]>;
   getSteps(): Promise<Step[]>;
+  getTestimonials(): Promise<Testimonial[]>;
+  getRecentProducts(): Promise<RecentProduct[]>;
+  createContactMessage(message: Omit<ContactMessage, 'id' | 'createdAt'>): Promise<ContactMessage>;
+  getContactMessages(): Promise<ContactMessage[]>;
+  getOrderByTrackingCode(trackingCode: string): Promise<Order | undefined>;
 }
 
 const stores: Store[] = [
@@ -77,11 +82,107 @@ const steps: Step[] = [
   { id: 6, icon: "Truck", title: "Receba em Casa", description: "Receba o seu artigo em Moçambique em 5 dias úteis!" },
 ];
 
+const testimonials: Testimonial[] = [
+  {
+    id: "1",
+    name: "Ana Silva",
+    location: "Maputo",
+    avatar: "",
+    rating: 5,
+    text: "Serviço excelente! Recebi as minhas encomendas da Zara em apenas 5 dias. Muito profissionais e comunicação clara pelo WhatsApp.",
+    date: "Novembro 2024"
+  },
+  {
+    id: "2",
+    name: "João Macuácua",
+    location: "Beira",
+    avatar: "",
+    rating: 5,
+    text: "Já fiz várias encomendas e nunca tive problemas. Preço justo e entrega sempre dentro do prazo. Recomendo a 100%!",
+    date: "Outubro 2024"
+  },
+  {
+    id: "3",
+    name: "Maria Tembe",
+    location: "Matola",
+    avatar: "",
+    rating: 5,
+    text: "Finalmente posso comprar roupa de qualidade europeia sem sair de casa. A Nia Express mudou a minha vida!",
+    date: "Novembro 2024"
+  },
+  {
+    id: "4",
+    name: "Carlos Mondlane",
+    location: "Maputo",
+    avatar: "",
+    rating: 4,
+    text: "Bom serviço e atenção ao cliente. A embalagem chegou em perfeitas condições. Vou continuar a usar.",
+    date: "Setembro 2024"
+  },
+  {
+    id: "5",
+    name: "Fatima Armando",
+    location: "Nampula",
+    avatar: "",
+    rating: 5,
+    text: "Comprei cosméticos da Kiko Milano e chegaram todos intactos. Muito cuidado no manuseamento. Adorei!",
+    date: "Outubro 2024"
+  },
+  {
+    id: "6",
+    name: "Pedro Sitoe",
+    location: "Quelimane",
+    avatar: "",
+    rating: 5,
+    text: "Processo simples e rápido. Enviei o link pelo WhatsApp e em menos de uma semana tinha tudo em casa.",
+    date: "Novembro 2024"
+  }
+];
+
+const recentProducts: RecentProduct[] = [
+  { id: "1", name: "Casaco Oversize", store: "Zara", image: "", customerName: "Ana S.", purchaseDate: "Nov 2024" },
+  { id: "2", name: "Vestido Midi", store: "Mango", image: "", customerName: "Maria T.", purchaseDate: "Nov 2024" },
+  { id: "3", name: "Ténis Casual", store: "ASOS", image: "", customerName: "João M.", purchaseDate: "Nov 2024" },
+  { id: "4", name: "Conjunto Desportivo", store: "H&M", image: "", customerName: "Carlos M.", purchaseDate: "Out 2024" },
+  { id: "5", name: "Mala de Mão", store: "Stradivarius", image: "", customerName: "Fatima A.", purchaseDate: "Out 2024" },
+  { id: "6", name: "Kit Maquilhagem", store: "Kiko Milano", image: "", customerName: "Luisa C.", purchaseDate: "Nov 2024" },
+  { id: "7", name: "Jeans Skinny", store: "Bershka", image: "", customerName: "Pedro S.", purchaseDate: "Nov 2024" },
+  { id: "8", name: "Blazer Clássico", store: "Pull&Bear", image: "", customerName: "Diana R.", purchaseDate: "Out 2024" },
+];
+
+const sampleOrders: Order[] = [
+  {
+    id: "1",
+    trackingCode: "NIA2024001",
+    customerName: "Cliente Teste",
+    status: "delivered",
+    statusDescription: "Encomenda entregue com sucesso",
+    createdAt: "2024-11-01",
+    updatedAt: "2024-11-06",
+    estimatedDelivery: "2024-11-06"
+  },
+  {
+    id: "2",
+    trackingCode: "NIA2024002",
+    customerName: "Cliente Demo",
+    status: "in_transit",
+    statusDescription: "Em trânsito para Moçambique",
+    createdAt: "2024-11-20",
+    updatedAt: "2024-11-22",
+    estimatedDelivery: "2024-11-27"
+  }
+];
+
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
+  private contactMessages: Map<string, ContactMessage>;
+  private orders: Map<string, Order>;
 
   constructor() {
     this.users = new Map();
+    this.contactMessages = new Map();
+    this.orders = new Map();
+    sampleOrders.forEach(order => this.orders.set(order.trackingCode, order));
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -115,6 +216,33 @@ export class MemStorage implements IStorage {
 
   async getSteps(): Promise<Step[]> {
     return steps;
+  }
+
+  async getTestimonials(): Promise<Testimonial[]> {
+    return testimonials;
+  }
+
+  async getRecentProducts(): Promise<RecentProduct[]> {
+    return recentProducts;
+  }
+
+  async createContactMessage(message: Omit<ContactMessage, 'id' | 'createdAt'>): Promise<ContactMessage> {
+    const id = randomUUID();
+    const contactMessage: ContactMessage = {
+      ...message,
+      id,
+      createdAt: new Date().toISOString()
+    };
+    this.contactMessages.set(id, contactMessage);
+    return contactMessage;
+  }
+
+  async getContactMessages(): Promise<ContactMessage[]> {
+    return Array.from(this.contactMessages.values());
+  }
+
+  async getOrderByTrackingCode(trackingCode: string): Promise<Order | undefined> {
+    return this.orders.get(trackingCode.toUpperCase());
   }
 }
 

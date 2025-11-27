@@ -1,15 +1,33 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import {
   ShoppingBag,
   Link as LinkIcon,
@@ -29,9 +47,19 @@ import {
   ArrowRight,
   Menu,
   X,
+  Search,
+  Send,
+  User,
+  MapPin,
+  Quote,
+  Mail,
+  Phone,
+  PackageCheck,
+  PackageSearch,
+  Loader2,
 } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
-import type { Store, Promotion, FAQ, Step } from "@shared/schema";
+import type { Store, Promotion, FAQ, Step, Testimonial, RecentProduct, Order } from "@shared/schema";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   ShoppingBag,
