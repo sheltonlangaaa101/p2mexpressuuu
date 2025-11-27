@@ -43,9 +43,9 @@
   --chart-3: 15 70% 45%;
   --chart-4: 200 65% 40%;
   --chart-5: 280 60% 45%;
-  --font-sans: Open Sans, sans-serif;
-  --font-serif: Georgia, serif;
-  --font-mono: Menlo, monospace;
+  --font-sans: Poppins, sans-serif;
+  --font-serif: Playfair Display, serif;
+  --font-mono: JetBrains Mono, monospace;
   --radius: .5rem;
   --shadow-2xs: 0px 2px 0px 0px hsl(35 15% 20% / 0.00);
   --shadow-xs: 0px 2px 0px 0px hsl(35 15% 20% / 0.00);
@@ -172,6 +172,21 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+.whatsapp-pulse {
+  animation: whatsapp-pulse-anim 2s ease-in-out infinite;
+}
+
+@keyframes whatsapp-pulse-anim {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.6;
   }
 }
 
