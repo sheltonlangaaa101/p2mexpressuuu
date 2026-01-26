@@ -147,7 +147,7 @@ function HeroSection() {
             style={{ animationDelay: "0.1s" }}
             data-testid="text-hero-title"
           >
-            Encomendas de Portugal para Moçambique
+            P2M EXPRESS
           </h1>
 
           <p 
@@ -155,7 +155,7 @@ function HeroSection() {
             style={{ animationDelay: "0.2s" }}
             data-testid="text-hero-slogan"
           >
-            Porque estar longe não significa estar sem.
+            Encomendas de Portugal para Moçambique — Porque estar longe não significa estar sem
           </p>
 
           <div className="flex flex-wrap justify-center gap-4 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
@@ -475,6 +475,179 @@ function PromotionsSection() {
   );
 }
 
+function CostCalculator() {
+  const [link, setLink] = useState("");
+  const [weight, setWeight] = useState([1]);
+  const { data: config } = useQuery<{
+    pricePerKg: number;
+    currency: string;
+    whatsappNumber: string;
+    whatsappMessage: string;
+  }>({
+    queryKey: ["/api/config"],
+  });
+
+  const total = (weight[0] * (config?.pricePerKg || 1400)).toFixed(2);
+
+  const handleOrder = () => {
+    const orderData = `\nLink: ${link}\nPeso Estimado: ${weight[0]}kg\nTotal Estimado: ${total} ${config?.currency || "MT"}`;
+    const message = encodeURIComponent((config?.whatsappMessage || "") + orderData);
+    const whatsappUrl = `https://wa.me/${config?.whatsappNumber}?text=${message}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
+  return (
+    <section id="calculadora" className="py-20 bg-background scroll-mt-16" data-testid="section-calculator">
+      <div className="container mx-auto px-4">
+        <div className="max-w-3xl mx-auto">
+          <Card className="p-8 border-primary/20 bg-card/50 backdrop-blur-sm">
+            <div className="text-center mb-8">
+              <Badge variant="secondary" className="mb-4">Orçamento Instantâneo</Badge>
+              <h2 className="text-3xl font-bold text-foreground">Calculadora de Peso</h2>
+              <p className="text-muted-foreground mt-2">Insira o link do artigo e estime o custo de envio</p>
+            </div>
+
+            <div className="space-y-8">
+              <div className="space-y-2">
+                <Label htmlFor="product-link">Link do Artigo</Label>
+                <div className="relative">
+                  <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input 
+                    id="product-link"
+                    placeholder="https://www.zara.com/pt/pt/casaco..."
+                    className="pl-10"
+                    value={link}
+                    onChange={(e) => setLink(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex justify-between">
+                  <Label>Peso Estimado: <span className="text-primary font-bold">{weight[0]}kg</span></Label>
+                  <span className="text-sm text-muted-foreground">Máx. 50kg</span>
+                </div>
+                <Slider
+                  value={weight}
+                  onValueChange={setWeight}
+                  max={50}
+                  step={0.5}
+                  min={0.5}
+                />
+              </div>
+
+              <div className="bg-primary/5 rounded-xl p-6 border border-primary/10 text-center">
+                <p className="text-sm text-muted-foreground uppercase tracking-wider font-semibold mb-2">Total Estimado</p>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-4xl font-bold text-primary">{total}</span>
+                  <span className="text-xl font-semibold text-muted-foreground">{config?.currency || "MT"}</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-4 italic">
+                  * Este valor é uma estimativa baseada no peso indicado. O valor final será confirmado após receção do artigo.
+                </p>
+              </div>
+
+              <Button 
+                size="lg" 
+                className="w-full gap-2 text-lg h-14" 
+                onClick={handleOrder}
+                disabled={!link}
+              >
+                <SiWhatsapp className="w-5 h-5" />
+                Encomendar via WhatsApp
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function RecentProductsSection() {
+  const { data: products, isLoading } = useQuery<RecentProduct[]>({
+    queryKey: ["/api/recent-products"],
+  });
+
+  return (
+    <section className="py-20 bg-background" data-testid="section-recent-products">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-16">
+          <Badge variant="secondary" className="mb-4">Entregas Recentes</Badge>
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Últimas Compras</h2>
+          <p className="text-muted-foreground">Artigos que acabaram de chegar aos nossos clientes em Moçambique</p>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-48 rounded-xl" />)
+          ) : (
+            products?.map((p) => (
+              <Card key={p.id} className="overflow-hidden group hover-elevate border-primary/10">
+                <div className="aspect-square bg-muted flex items-center justify-center p-8 group-hover:scale-105 transition-transform">
+                  <Package className="w-12 h-12 text-primary/40" />
+                </div>
+                <div className="p-4 bg-card">
+                  <h4 className="font-bold text-sm text-foreground truncate">{p.name}</h4>
+                  <div className="flex justify-between items-center mt-2">
+                    <Badge variant="outline" className="text-[10px] uppercase">{p.store}</Badge>
+                    <span className="text-[10px] text-muted-foreground">{p.purchaseDate}</span>
+                  </div>
+                </div>
+              </Card>
+            ))
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TestimonialsSection() {
+  const { data: testimonials, isLoading } = useQuery<Testimonial[]>({
+    queryKey: ["/api/testimonials"],
+  });
+
+  return (
+    <section className="py-20 bg-muted/30" data-testid="section-testimonials">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-16">
+          <Badge variant="secondary" className="mb-4">Testemunhos</Badge>
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">O que dizem os nossos clientes</h2>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-64 rounded-xl" />)
+          ) : (
+            testimonials?.map((t) => (
+              <Card key={t.id} className="p-8 hover-elevate transition-all border-primary/10">
+                <div className="flex gap-1 mb-4">
+                  {Array.from({ length: t.rating }).map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-primary text-primary" />
+                  ))}
+                </div>
+                <p className="text-muted-foreground mb-6 italic">"{t.text}"</p>
+                <div className="flex items-center gap-4">
+                  <Avatar>
+                    <AvatarFallback className="bg-primary/10 text-primary">
+                      {t.name.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h4 className="font-bold text-foreground">{t.name}</h4>
+                    <p className="text-xs text-muted-foreground">{t.location} • {t.date}</p>
+                  </div>
+                </div>
+              </Card>
+            ))
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function FAQSection() {
   const { data: faqs, isLoading } = useQuery<FAQ[]>({
     queryKey: ["/api/faqs"],
@@ -561,10 +734,10 @@ function AboutSection() {
               Sobre Nós
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6" data-testid="text-about-title">
-              A Sua Ponte Entre Portugal e Moçambique
+              P2M EXPRESS — A Sua Ponte Entre Portugal e Moçambique
             </h2>
             <p className="text-muted-foreground mb-6 leading-relaxed" data-testid="text-about-paragraph-1">
-              A <strong className="text-foreground">Nia Express</strong> nasceu da vontade de aproximar as pessoas às marcas e produtos que amam. Somos especialistas em compras e envio de artigos das melhores lojas portuguesas para Moçambique.
+              A <strong className="text-foreground">P2M EXPRESS</strong> nasceu da vontade de aproximar as pessoas às marcas e produtos que amam. Somos especialistas em compras e envio de artigos das melhores lojas portuguesas para Moçambique.
             </p>
             <p className="text-muted-foreground mb-8 leading-relaxed" data-testid="text-about-paragraph-2">
               A nossa missão é simples: tornar as compras internacionais acessíveis, seguras e rápidas para todos. Com uma equipa dedicada e um processo simplificado, garantimos que cada encomenda chega em perfeitas condições.
@@ -618,6 +791,108 @@ function AboutSection() {
   );
 }
 
+function ContactSection() {
+  const { toast } = useToast();
+  const form = useForm({
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      message: "",
+    },
+  });
+
+  const mutation = useMutation({
+    mutationFn: (data: any) => apiRequest("POST", "/api/contact", data),
+    onSuccess: () => {
+      toast({
+        title: "Mensagem Enviada",
+        description: "Agradecemos o seu contacto. Responderemos em breve.",
+      });
+      form.reset();
+    },
+  });
+
+  return (
+    <section id="contacto" className="py-20 bg-muted/30 scroll-mt-16" data-testid="section-contact">
+      <div className="container mx-auto px-4">
+        <div className="max-w-4xl mx-auto grid lg:grid-cols-2 gap-12">
+          <div>
+            <Badge variant="secondary" className="mb-4">Contacto</Badge>
+            <h2 className="text-3xl font-bold text-foreground mb-6">Estamos aqui para ajudar</h2>
+            <p className="text-muted-foreground mb-8">Prefere enviar uma mensagem direta? Preencha o formulário e a nossa equipa entrará em contacto.</p>
+
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold">Email</h4>
+                  <p className="text-sm text-muted-foreground">geral@p2mexpress.com</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                  <SiWhatsapp className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold">WhatsApp</h4>
+                  <p className="text-sm text-muted-foreground">+258 82 372 0155</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <Card className="p-8 border-primary/10">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome</FormLabel>
+                      <FormControl><Input placeholder="Seu nome" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl><Input placeholder="seu@email.com" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="message"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Mensagem</FormLabel>
+                      <FormControl><Textarea placeholder="Como podemos ajudar?" className="min-h-[120px]" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full h-12 text-base" disabled={mutation.isPending}>
+                  {mutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+                  Enviar Mensagem
+                </Button>
+              </form>
+            </Form>
+          </Card>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Footer() {
   const { data: config } = useQuery<{
     pricePerKg: number;
@@ -625,6 +900,7 @@ function Footer() {
     deliveryDays: number;
     whatsappNumber: string;
     whatsappMessage: string;
+    instagramHandle: string;
   }>({
     queryKey: ["/api/config"],
   });
@@ -632,7 +908,7 @@ function Footer() {
   const message = encodeURIComponent(
     config?.whatsappMessage || "Olá, gostaria de fazer uma encomenda de Portugal para Moçambique."
   );
-  const whatsappUrl = `https://wa.me/${config?.whatsappNumber || "351000000000"}?text=${message}`;
+  const whatsappUrl = `https://wa.me/${config?.whatsappNumber || "258823720155"}?text=${message}`;
 
   return (
     <footer className="bg-card border-t border-border py-12" data-testid="section-footer">
@@ -640,7 +916,7 @@ function Footer() {
         <div className="grid md:grid-cols-3 gap-8 mb-8">
           <div>
             <h3 className="font-bold text-xl text-foreground mb-4" data-testid="text-footer-logo">
-              Nia Express
+              P2M EXPRESS
             </h3>
             <p className="text-muted-foreground text-sm mb-4" data-testid="text-footer-tagline">
               Compras de Portugal para Moçambique com segurança, rapidez e confiança.
@@ -656,6 +932,17 @@ function Footer() {
                 {config?.deliveryDays || 5} dias úteis
               </span>
             </div>
+            {config?.instagramHandle && (
+              <a 
+                href={`https://instagram.com/${config.instagramHandle}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary mt-4"
+              >
+                <Star className="w-4 h-4" />
+                <span className="text-sm">@{config.instagramHandle}</span>
+              </a>
+            )}
           </div>
 
           <div>
@@ -664,9 +951,9 @@ function Footer() {
               {[
                 { label: "Como Funciona", href: "#como-funciona" },
                 { label: "Lojas", href: "#lojas" },
-                { label: "Promoções", href: "#promocoes" },
+                { label: "Calculadora", href: "#calculadora" },
                 { label: "FAQ", href: "#faq" },
-                { label: "Sobre Nós", href: "#sobre" },
+                { label: "Contacto", href: "#contacto" },
               ].map((link) => (
                 <li key={link.label}>
                   <a
@@ -703,7 +990,7 @@ function Footer() {
 
         <div className="border-t border-border pt-8 text-center">
           <p className="text-sm text-muted-foreground" data-testid="text-footer-copyright">
-            © {new Date().getFullYear()} Nia Express. Todos os direitos reservados.
+            © {new Date().getFullYear()} P2M EXPRESS. Todos os direitos reservados.
           </p>
         </div>
       </div>
@@ -744,9 +1031,9 @@ function Navbar() {
   const navLinks = [
     { label: "Como Funciona", href: "#como-funciona" },
     { label: "Lojas", href: "#lojas" },
-    { label: "Promoções", href: "#promocoes" },
+    { label: "Calculadora", href: "#calculadora" },
     { label: "FAQ", href: "#faq" },
-    { label: "Sobre", href: "#sobre" },
+    { label: "Contacto", href: "#contacto" },
   ];
 
   const message = encodeURIComponent(
@@ -770,11 +1057,14 @@ function Navbar() {
           <div className="flex items-center justify-between h-16">
             <a 
               href="#" 
-              className="font-bold text-xl text-foreground" 
+              className="font-bold text-xl text-foreground flex items-center gap-2" 
               data-testid="link-logo"
-              aria-label="Nia Express - Página inicial"
+              aria-label="P2M EXPRESS - Página inicial"
             >
-              Nia Express
+              <div className="w-8 h-8 bg-primary rounded-sm flex items-center justify-center text-white">
+                <Package className="w-5 h-5" />
+              </div>
+              P2M EXPRESS
             </a>
 
             <div className="hidden md:flex items-center gap-6" data-testid="nav-desktop-links">
@@ -875,10 +1165,14 @@ export default function Home() {
       <main>
         <HeroSection />
         <HowItWorksSection />
+        <RecentProductsSection />
+        <CostCalculator />
         <StoresSection />
         <PromotionsSection />
+        <TestimonialsSection />
         <FAQSection />
         <AboutSection />
+        <ContactSection />
       </main>
       <Footer />
       <WhatsAppButton />

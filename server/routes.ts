@@ -55,8 +55,9 @@ export async function registerRoutes(
       pricePerKg: 1400,
       currency: "MT",
       deliveryDays: 5,
-      whatsappNumber: "351000000000",
-      whatsappMessage: "Olá, gostaria de fazer uma encomenda de Portugal para Moçambique.",
+      whatsappNumber: "258823720155",
+      whatsappMessage: "Olá, gostaria de fazer a seguinte encomenda:",
+      instagramHandle: "p2mexpress",
     });
   });
 

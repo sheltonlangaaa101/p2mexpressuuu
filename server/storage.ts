@@ -17,16 +17,28 @@ export interface IStorage {
 }
 
 const stores: Store[] = [
-  { id: "1", name: "Zara", url: "https://www.zara.com", color: "#000000", description: "Moda atual para mulher, homem e criança" },
-  { id: "2", name: "Stradivarius", url: "https://www.stradivarius.com", color: "#000000", description: "Tendências jovens e acessíveis" },
-  { id: "3", name: "Mango", url: "https://shop.mango.com", color: "#000000", description: "Design mediterrâneo com qualidade" },
-  { id: "4", name: "Bershka", url: "https://www.bershka.com", color: "#000000", description: "Moda urbana e streetwear" },
-  { id: "5", name: "Pull&Bear", url: "https://www.pullandbear.com", color: "#000000", description: "Casual e relaxado para o dia-a-dia" },
-  { id: "6", name: "Primark", url: "https://www.primark.com", color: "#0066B2", description: "Moda acessível para toda a família" },
-  { id: "7", name: "ASOS", url: "https://www.asos.com", color: "#2D2D2D", description: "Moda online com milhares de marcas" },
-  { id: "8", name: "H&M", url: "https://www2.hm.com", color: "#E50010", description: "Moda sustentável a preços acessíveis" },
-  { id: "9", name: "Kiko Milano", url: "https://www.kikocosmetics.com", color: "#000000", description: "Cosméticos italianos de qualidade" },
-  { id: "10", name: "Weekday", url: "https://www.weekday.com", color: "#000000", description: "Moda escandinava minimalista" },
+  { id: "1", name: "Zara", url: "https://www.zara.com", color: "#A38D5B", description: "Moda atual para mulher, homem e criança" },
+  { id: "2", name: "Stradivarius", url: "https://www.stradivarius.com", color: "#A38D5B", description: "Tendências jovens e acessíveis" },
+  { id: "3", name: "Mango", url: "https://shop.mango.com", color: "#A38D5B", description: "Design mediterrâneo com qualidade" },
+  { id: "4", name: "Bershka", url: "https://www.bershka.com", color: "#A38D5B", description: "Moda urbana e streetwear" },
+  { id: "5", name: "Pull&Bear", url: "https://www.pullandbear.com", color: "#A38D5B", description: "Casual e relaxado para o dia-a-dia" },
+  { id: "6", name: "Primark", url: "https://www.primark.com", color: "#A38D5B", description: "Moda acessível para toda a família" },
+  { id: "7", name: "ASOS", url: "https://www.asos.com", color: "#A38D5B", description: "Moda online com milhares de marcas" },
+  { id: "8", name: "H&M", url: "https://www2.hm.com", color: "#A38D5B", description: "Moda sustentável a preços acessíveis" },
+  { id: "9", name: "Kiko Milano", url: "https://www.kikocosmetics.com", color: "#A38D5B", description: "Cosméticos italianos de qualidade" },
+  { id: "10", name: "Weekday", url: "https://www.weekday.com", color: "#A38D5B", description: "Moda escandinava minimalista" },
+  { id: "11", name: "Nike", url: "https://www.nike.com/pt", color: "#A38D5B", description: "Calçado e vestuário desportivo" },
+  { id: "12", name: "Adidas", url: "https://www.adidas.pt", color: "#A38D5B", description: "Líder mundial em artigos desportivos" },
+  { id: "13", name: "Apple", url: "https://www.apple.com/pt", color: "#A38D5B", description: "Tecnologia e inovação" },
+  { id: "14", name: "Samsung", url: "https://www.samsung.com/pt", color: "#A38D5B", description: "Líder em tecnologia móvel e eletrónica" },
+  { id: "15", name: "Boss", url: "https://www.hugoboss.com/pt", color: "#A38D5B", description: "Moda de luxo e alfaiataria" },
+  { id: "16", name: "Lacoste", url: "https://www.lacoste.com/pt", color: "#A38D5B", description: "Elegância desportiva clássica" },
+  { id: "17", name: "JD Sports", url: "https://www.jdsports.pt", color: "#A38D5B", description: "O rei das sapatilhas e moda urbana" },
+  { id: "18", name: "C&A", url: "https://www.cea.pt", color: "#A38D5B", description: "Moda de qualidade para todos" },
+  { id: "19", name: "Aldo", url: "https://www.aldoshoes.com/pt", color: "#A38D5B", description: "Calçado e acessórios de tendência" },
+  { id: "20", name: "JBL", url: "https://pt.jbl.com", color: "#A38D5B", description: "Som de alta fidelidade e colunas" },
+  { id: "21", name: "Seaside", url: "https://www.seaside.pt", color: "#A38D5B", description: "Calçado português para todas as ocasiões" },
+  { id: "22", name: "Puma", url: "https://pt.puma.com", color: "#A38D5B", description: "Performance e estilo desportivo" },
 ];
 
 const promotions: Promotion[] = [
