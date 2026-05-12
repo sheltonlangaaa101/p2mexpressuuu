@@ -110,7 +110,7 @@ Preferred communication style: Simple, everyday language.
 - Date-fns for date manipulation and formatting
 
 **Planned Integrations:**
-- WhatsApp Business API for customer communication (number configured: 351000000000)
+- WhatsApp Business API for customer communication (number configured: 258823720155)
 - PostgreSQL database via Neon serverless for production data storage
 - Session-based authentication system with Passport.js dependencies included
 

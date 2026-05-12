@@ -83,7 +83,7 @@ function WhatsAppButton() {
   const message = encodeURIComponent(
     config?.whatsappMessage || "Olá, gostaria de fazer uma encomenda de Portugal para Moçambique."
   );
-  const whatsappUrl = `https://wa.me/${config?.whatsappNumber || "351000000000"}?text=${message}`;
+  const whatsappUrl = `https://wa.me/${config?.whatsappNumber || "258823720155"}?text=${message}`;
 
   return (
     <a
@@ -121,7 +121,7 @@ function HeroSection() {
   const message = encodeURIComponent(
     config?.whatsappMessage || "Olá, gostaria de fazer uma encomenda de Portugal para Moçambique."
   );
-  const whatsappUrl = `https://wa.me/${config?.whatsappNumber || "351000000000"}?text=${message}`;
+  const whatsappUrl = `https://wa.me/${config?.whatsappNumber || "258823720155"}?text=${message}`;
 
   return (
     <section 
@@ -152,7 +152,7 @@ function HeroSection() {
             <img
               src={logoTransparent}
               alt="P2M Express"
-              className="h-24 md:h-32 w-auto object-contain"
+              className="h-40 md:h-56 w-auto object-contain"
             />
           </div>
 
@@ -960,7 +960,7 @@ function Footer() {
               <img
                 src={logoTransparent}
                 alt="P2M Express"
-                className="h-14 w-auto object-contain"
+                className="h-24 w-auto object-contain"
               />
             </div>
             <p className="text-muted-foreground text-sm mb-4" data-testid="text-footer-tagline">
@@ -1084,7 +1084,7 @@ function Navbar() {
   const message = encodeURIComponent(
     config?.whatsappMessage || "Olá, gostaria de fazer uma encomenda de Portugal para Moçambique."
   );
-  const whatsappUrl = `https://wa.me/${config?.whatsappNumber || "351000000000"}?text=${message}`;
+  const whatsappUrl = `https://wa.me/${config?.whatsappNumber || "258823720155"}?text=${message}`;
 
   return (
     <>
@@ -1109,7 +1109,7 @@ function Navbar() {
               <img
                 src={logoTransparent}
                 alt="P2M Express"
-                className="h-10 w-auto object-contain"
+                className="h-16 w-auto object-contain"
                 data-testid="img-logo-navbar"
               />
             </a>
