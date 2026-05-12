@@ -60,6 +60,8 @@ import {
 } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import type { Store, Promotion, FAQ, Step, Testimonial, RecentProduct, Order } from "@shared/schema";
+import logoTransparent from "@assets/logo2_transparent.png";
+import logoWhite from "@assets/logo1.png";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   ShoppingBag,
@@ -142,13 +144,17 @@ function HeroSection() {
             <span>De Portugal para Moçambique</span>
           </div>
 
-          <h1 
-            className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight animate-fade-in-up" 
+          <div 
+            className="flex justify-center animate-fade-in-up"
             style={{ animationDelay: "0.1s" }}
-            data-testid="text-hero-title"
+            data-testid="img-hero-logo"
           >
-            P2M EXPRESS
-          </h1>
+            <img
+              src={logoTransparent}
+              alt="P2M Express"
+              className="h-24 md:h-32 w-auto object-contain"
+            />
+          </div>
 
           <p 
             className="text-xl md:text-2xl text-muted-foreground font-medium animate-fade-in-up" 
@@ -915,9 +921,13 @@ function Footer() {
       <div className="container mx-auto px-4">
         <div className="grid md:grid-cols-3 gap-8 mb-8">
           <div>
-            <h3 className="font-bold text-xl text-foreground mb-4" data-testid="text-footer-logo">
-              P2M EXPRESS
-            </h3>
+            <div className="mb-4" data-testid="img-footer-logo">
+              <img
+                src={logoTransparent}
+                alt="P2M Express"
+                className="h-14 w-auto object-contain"
+              />
+            </div>
             <p className="text-muted-foreground text-sm mb-4" data-testid="text-footer-tagline">
               Compras de Portugal para Moçambique com segurança, rapidez e confiança.
             </p>
@@ -1057,14 +1067,16 @@ function Navbar() {
           <div className="flex items-center justify-between h-16">
             <a 
               href="#" 
-              className="font-bold text-xl text-foreground flex items-center gap-2" 
+              className="flex items-center" 
               data-testid="link-logo"
               aria-label="P2M EXPRESS - Página inicial"
             >
-              <div className="w-8 h-8 bg-primary rounded-sm flex items-center justify-center text-white">
-                <Package className="w-5 h-5" />
-              </div>
-              P2M EXPRESS
+              <img
+                src={logoTransparent}
+                alt="P2M Express"
+                className="h-10 w-auto object-contain"
+                data-testid="img-logo-navbar"
+              />
             </a>
 
             <div className="hidden md:flex items-center gap-6" data-testid="nav-desktop-links">
