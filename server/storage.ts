@@ -42,14 +42,14 @@ const stores: Store[] = [
 ];
 
 const promotions: Promotion[] = [
-  { id: "1", store: "ASOS", date: "29 Nov", discount: "50-70%", color: "#2D2D2D", isHot: true },
-  { id: "2", store: "Mango", date: "28 Nov", discount: "50%", color: "#000000", isHot: false },
-  { id: "3", store: "Primark", date: "29 Nov", discount: "80%", color: "#0066B2", isHot: true },
-  { id: "4", store: "Weekday", date: "24 Nov", discount: "40%", color: "#000000", isHot: false },
-  { id: "5", store: "Bershka", date: "26 Nov", discount: "50%", color: "#000000", isHot: false },
-  { id: "6", store: "Pull&Bear", date: "27 Nov", discount: "50%", color: "#000000", isHot: false },
-  { id: "7", store: "Zara", date: "28 Nov", discount: "70%", color: "#000000", isHot: true },
-  { id: "8", store: "H&M", date: "29 Nov", discount: "60%", color: "#E50010", isHot: true },
+  { id: "1", store: "Zara", date: "Até 31 Jul", discount: "50%", color: "#000000", isHot: true },
+  { id: "2", store: "Mango", date: "Até 31 Jul", discount: "40%", color: "#000000", isHot: false },
+  { id: "3", store: "H&M", date: "Até 31 Jul", discount: "60%", color: "#E50010", isHot: true },
+  { id: "4", store: "ASOS", date: "Até 15 Jul", discount: "70%", color: "#2D2D2D", isHot: true },
+  { id: "5", store: "Bershka", date: "Até 20 Jul", discount: "50%", color: "#000000", isHot: false },
+  { id: "6", store: "Pull&Bear", date: "Até 20 Jul", discount: "40%", color: "#000000", isHot: false },
+  { id: "7", store: "Nike", date: "Até 30 Jun", discount: "30%", color: "#111111", isHot: false },
+  { id: "8", store: "Adidas", date: "Até 30 Jun", discount: "35%", color: "#000000", isHot: true },
 ];
 
 const faqs: FAQ[] = [
@@ -152,14 +152,78 @@ const testimonials: Testimonial[] = [
 ];
 
 const recentProducts: RecentProduct[] = [
-  { id: "1", name: "Casaco Oversize", store: "Zara", image: "", customerName: "Ana S.", purchaseDate: "Nov 2024" },
-  { id: "2", name: "Vestido Midi", store: "Mango", image: "", customerName: "Maria T.", purchaseDate: "Nov 2024" },
-  { id: "3", name: "Ténis Casual", store: "ASOS", image: "", customerName: "João M.", purchaseDate: "Nov 2024" },
-  { id: "4", name: "Conjunto Desportivo", store: "H&M", image: "", customerName: "Carlos M.", purchaseDate: "Out 2024" },
-  { id: "5", name: "Mala de Mão", store: "Stradivarius", image: "", customerName: "Fatima A.", purchaseDate: "Out 2024" },
-  { id: "6", name: "Kit Maquilhagem", store: "Kiko Milano", image: "", customerName: "Luisa C.", purchaseDate: "Nov 2024" },
-  { id: "7", name: "Jeans Skinny", store: "Bershka", image: "", customerName: "Pedro S.", purchaseDate: "Nov 2024" },
-  { id: "8", name: "Blazer Clássico", store: "Pull&Bear", image: "", customerName: "Diana R.", purchaseDate: "Out 2024" },
+  {
+    id: "1",
+    name: "Casaco Oversize Linho",
+    store: "Zara",
+    image: "https://static.zara.net/assets/public/1b13/1e3b/3e6b4b799ff6/a4ff28e69d1c/09153305712-a1/09153305712-a1.jpg?ts=1746106741836&w=750",
+    productUrl: "https://www.zara.com/pt/pt/casaco-oversize-linho-p09153305.html",
+    customerName: "Ana S.",
+    purchaseDate: "Mai 2026"
+  },
+  {
+    id: "2",
+    name: "Vestido Midi Floral",
+    store: "Mango",
+    image: "https://st.mngbcn.com/rcs/pics/static/T3/fotos/S20/67035780_99_B.jpg?imwidth=480&imdensity=1",
+    productUrl: "https://shop.mango.com/pt/mulher/vestidos-midi/vestido-floral-midi_67035780.html",
+    customerName: "Maria T.",
+    purchaseDate: "Mai 2026"
+  },
+  {
+    id: "3",
+    name: "Ténis Air Max 2025",
+    store: "Nike",
+    image: "https://static.nike.com/a/images/t_PDP_1280_v1/f_auto,q_auto:eco/99486859-0ff3-46b4-949b-2d16af2ad421/calzado-air-max-plus-FV0961.png",
+    productUrl: "https://www.nike.com/pt/t/air-max-plus-shoe",
+    customerName: "João M.",
+    purchaseDate: "Abr 2026"
+  },
+  {
+    id: "4",
+    name: "Conjunto Desportivo",
+    store: "Adidas",
+    image: "https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/f7a6b4ba51e54e179e37ae4c016cc2f3_9366/Conjunto_Tiro_24_Competition_Azul_IQ4760_HM4.jpg",
+    productUrl: "https://www.adidas.pt/tiro-24-competition-conjunto/IQ4760.html",
+    customerName: "Carlos M.",
+    purchaseDate: "Abr 2026"
+  },
+  {
+    id: "5",
+    name: "Mala Tiracolo Couro",
+    store: "Stradivarius",
+    image: "https://cdna.lystit.com/photos/stradivarius/2024/12/stradivarius-beige-Leather-Effect-Mini-Bucket-Bag.jpeg",
+    productUrl: "https://www.stradivarius.com/pt/mulher/acessorios/bolsas",
+    customerName: "Fatima A.",
+    purchaseDate: "Mar 2026"
+  },
+  {
+    id: "6",
+    name: "Kit Maquilhagem Primavera",
+    store: "Kiko Milano",
+    image: "https://www.kikocosmetics.com/dw/image/v2/BCRS_PRD/on/demandware.static/-/Sites-kiko-master-catalog/default/dw9b3c5c73/products/KM0020107802744/Large/KM0020107802744_Front.jpg?sw=600&sh=600&sm=fit",
+    productUrl: "https://www.kikocosmetics.com/pt-pt/maquilhagem/olhos/paletes-de-sombras",
+    customerName: "Luisa C.",
+    purchaseDate: "Mar 2026"
+  },
+  {
+    id: "7",
+    name: "Jeans Wide Leg",
+    store: "Bershka",
+    image: "https://static.bershka.net/assets/public/8b81/df9a/e5a84a97a8be/e3d2c4e62f0d/05800501427-a1/05800501427-a1.jpg?ts=1742298036629&w=750",
+    productUrl: "https://www.bershka.com/pt/mulher/roupa/jeans/jeans-wide-leg-c1010274555p105800501.html",
+    customerName: "Pedro S.",
+    purchaseDate: "Fev 2026"
+  },
+  {
+    id: "8",
+    name: "Blazer Estruturado",
+    store: "H&M",
+    image: "https://image.hm.com/assets/hm/58/8e/588e98e6c7f25f5b98e3c67a6e9dda3f6f4b2d56.jpg?imwidth=564",
+    productUrl: "https://www2.hm.com/pt_pt/productpage.1258072001.html",
+    customerName: "Diana R.",
+    purchaseDate: "Jan 2026"
+  },
 ];
 
 const sampleOrders: Order[] = [

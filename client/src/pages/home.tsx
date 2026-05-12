@@ -377,7 +377,7 @@ function PromotionsSection() {
   });
 
   useEffect(() => {
-    const targetDate = new Date("2025-11-29T23:59:59");
+    const targetDate = new Date("2026-07-31T23:59:59");
 
     const updateTimer = () => {
       const now = new Date();
@@ -402,15 +402,15 @@ function PromotionsSection() {
     <section id="promocoes" className="py-20 bg-gradient-to-br from-primary/5 via-background to-orange-50/50 dark:from-primary/10 dark:via-background dark:to-background scroll-mt-16" data-testid="section-promotions">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <Badge className="mb-4 bg-destructive/10 text-destructive border-destructive/20" data-testid="badge-black-friday">
+          <Badge className="mb-4 bg-primary/10 text-primary border-primary/20" data-testid="badge-summer-sale">
             <Sparkles className="w-3 h-3 mr-1" />
-            Black Friday
+            Saldos de Verão 2026
           </Badge>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4" data-testid="text-promotions-title">
             Promoções Imperdíveis
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto mb-8" data-testid="text-promotions-description">
-            Aproveite os melhores descontos das lojas parceiras. Não perca estas ofertas exclusivas!
+            Os saldos de verão chegaram! Aproveite os melhores descontos nas lojas parceiras antes que acabem.
           </p>
 
           <div className="flex justify-center gap-4 mb-12 flex-wrap" data-testid="countdown-timer">
@@ -586,21 +586,56 @@ function RecentProductsSection() {
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {isLoading ? (
-            Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-48 rounded-xl" />)
+            Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-64 rounded-xl" />)
           ) : (
             products?.map((p) => (
-              <Card key={p.id} className="overflow-hidden group hover-elevate border-primary/10">
-                <div className="aspect-square bg-muted flex items-center justify-center p-8 group-hover:scale-105 transition-transform">
-                  <Package className="w-12 h-12 text-primary/40" />
-                </div>
-                <div className="p-4 bg-card">
-                  <h4 className="font-bold text-sm text-foreground truncate">{p.name}</h4>
-                  <div className="flex justify-between items-center mt-2">
-                    <Badge variant="outline" className="text-[10px] uppercase">{p.store}</Badge>
-                    <span className="text-[10px] text-muted-foreground">{p.purchaseDate}</span>
+              <a
+                key={p.id}
+                href={p.productUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid={`card-product-${p.id}`}
+                className="block"
+                aria-label={`Ver ${p.name} na ${p.store}`}
+              >
+                <Card className="overflow-hidden group hover-elevate border-primary/10 h-full">
+                  <div className="aspect-square bg-muted relative overflow-hidden">
+                    {p.image ? (
+                      <img
+                        src={p.image}
+                        alt={p.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          target.style.display = "none";
+                          const fallback = target.nextElementSibling as HTMLElement;
+                          if (fallback) fallback.style.display = "flex";
+                        }}
+                      />
+                    ) : null}
+                    <div
+                      className="absolute inset-0 bg-muted items-center justify-center"
+                      style={{ display: p.image ? "none" : "flex" }}
+                    >
+                      <Package className="w-12 h-12 text-primary/40" />
+                    </div>
+                    <div className="absolute top-2 right-2">
+                      <Badge className="text-[10px] bg-background/90 text-foreground border border-border">
+                        <ExternalLink className="w-2.5 h-2.5 mr-1" />
+                        Ver
+                      </Badge>
+                    </div>
                   </div>
-                </div>
-              </Card>
+                  <div className="p-4 bg-card">
+                    <h4 className="font-bold text-sm text-foreground truncate">{p.name}</h4>
+                    <div className="flex justify-between items-center mt-2 gap-1 flex-wrap">
+                      <Badge variant="outline" className="text-[10px] uppercase">{p.store}</Badge>
+                      <span className="text-[10px] text-muted-foreground">{p.purchaseDate}</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-1">Comprado por {p.customerName}</p>
+                  </div>
+                </Card>
+              </a>
             ))
           )}
         </div>

@@ -62,6 +62,7 @@ export interface RecentProduct {
   name: string;
   store: string;
   image: string;
+  productUrl: string;
   customerName: string;
   purchaseDate: string;
 }
