@@ -858,7 +858,7 @@ function ContactSection() {
                 </div>
                 <div>
                   <h4 className="font-bold">Email</h4>
-                  <p className="text-sm text-muted-foreground">geral@p2mexpress.com</p>
+                  <p className="text-sm text-muted-foreground">p2mexpress@gmail.com</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
