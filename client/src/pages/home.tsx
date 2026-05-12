@@ -144,18 +144,6 @@ function HeroSection() {
             <span>De Portugal para Moçambique</span>
           </div>
 
-          <div 
-            className="flex justify-center animate-fade-in-up"
-            style={{ animationDelay: "0.1s" }}
-            data-testid="img-hero-logo"
-          >
-            <img
-              src={logoTransparent}
-              alt="P2M Express"
-              className="h-40 md:h-56 w-auto object-contain"
-            />
-          </div>
-
           <p 
             className="text-xl md:text-2xl text-muted-foreground font-medium animate-fade-in-up" 
             style={{ animationDelay: "0.2s" }}
