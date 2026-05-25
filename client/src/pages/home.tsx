@@ -57,11 +57,31 @@ import {
   PackageCheck,
   PackageSearch,
   Loader2,
+  Plus,
+  Trash2,
+  ArrowLeftRight,
 } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { Store, Promotion, FAQ, Step, Testimonial, RecentProduct, Order } from "@shared/schema";
-import logoTransparent from "@assets/logo2_transparent.png";
-import logoWhite from "@assets/logo1.png";
+import logoTransparent from "@/assets/logo2_transparent.png";
+import { BRAND_NAME } from "@shared/config";
+import {
+  type AppConfig,
+  type OrderItem,
+  type PurchaseOptionId,
+  PURCHASE_OPTIONS,
+  EXCHANGE_FROM,
+  EXCHANGE_TO,
+  DEFAULT_EXCHANGE_RATE,
+  withConfigDefaults,
+  createEmptyItem,
+  parsePriceEur,
+  calculateOrderTotals,
+  formatMt,
+  buildWhatsAppOrderMessage,
+  openWhatsApp,
+} from "@/lib/order";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   ShoppingBag,
@@ -469,86 +489,334 @@ function PromotionsSection() {
   );
 }
 
-function CostCalculator() {
-  const [link, setLink] = useState("");
-  const [weight, setWeight] = useState([1]);
-  const { data: config } = useQuery<{
-    pricePerKg: number;
-    currency: string;
-    whatsappNumber: string;
-    whatsappMessage: string;
-  }>({
-    queryKey: ["/api/config"],
-  });
+function OrderItemsEditor({
+  items,
+  onChange,
+  exchangeRate = DEFAULT_EXCHANGE_RATE,
+}: {
+  items: OrderItem[];
+  onChange: (items: OrderItem[]) => void;
+  exchangeRate?: number;
+}) {
+  const updateItem = (id: string, patch: Partial<OrderItem>) => {
+    onChange(items.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+  };
 
-  const total = (weight[0] * (config?.pricePerKg || 1400)).toFixed(2);
-
-  const handleOrder = () => {
-    const orderData = `\nLink: ${link}\nPeso Estimado: ${weight[0]}kg\nTotal Estimado: ${total} ${config?.currency || "MT"}`;
-    const message = encodeURIComponent((config?.whatsappMessage || "") + orderData);
-    const whatsappUrl = `https://wa.me/${config?.whatsappNumber}?text=${message}`;
-    window.open(whatsappUrl, "_blank");
+  const removeItem = (id: string) => {
+    if (items.length <= 1) return;
+    onChange(items.filter((item) => item.id !== id));
   };
 
   return (
-    <section id="calculadora" className="py-20 bg-background scroll-mt-16" data-testid="section-calculator">
+    <div className="space-y-4">
+      {items.map((item, index) => (
+        <Card key={item.id} className="p-4 border-border/80 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold text-foreground">Artigo {index + 1}</span>
+            {items.length > 1 && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-destructive hover:text-destructive"
+                onClick={() => removeItem(item.id)}
+                aria-label={`Remover artigo ${index + 1}`}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label>Link do artigo</Label>
+            <div className="relative">
+              <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="https://www.zara.com/pt/pt/..."
+                className="pl-10"
+                value={item.link}
+                onChange={(e) => updateItem(item.id, { link: e.target.value })}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-2">
+              <Label>Tamanho</Label>
+              <Input
+                placeholder="Ex: M, 38, 42"
+                value={item.size}
+                onChange={(e) => updateItem(item.id, { size: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Quantidade</Label>
+              <Input
+                type="number"
+                min={1}
+                value={item.quantity}
+                onChange={(e) =>
+                  updateItem(item.id, {
+                    quantity: Math.max(1, parseInt(e.target.value, 10) || 1),
+                  })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Preço (€)</Label>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                placeholder="0.00"
+                value={item.priceEur}
+                onChange={(e) => updateItem(item.id, { priceEur: e.target.value })}
+              />
+              {parsePriceEur(item.priceEur) > 0 && (
+                <p className="text-xs text-primary font-medium">
+                  = {formatMt(parsePriceEur(item.priceEur) * item.quantity * exchangeRate)}{" "}
+                  {EXCHANGE_TO}
+                </p>
+              )}
+            </div>
+          </div>
+        </Card>
+      ))}
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full gap-2"
+        onClick={() => onChange([...items, createEmptyItem()])}
+      >
+        <Plus className="w-4 h-4" />
+        Adicionar outro artigo
+      </Button>
+    </div>
+  );
+}
+
+function PurchaseOptionsPicker({
+  value,
+  onChange,
+  idPrefix = "order-",
+}: {
+  value: PurchaseOptionId;
+  onChange: (v: PurchaseOptionId) => void;
+  idPrefix?: string;
+}) {
+  return (
+    <div className="rounded-xl border border-primary/20 bg-primary/5 p-5 space-y-3">
+      <h3 className="font-semibold text-foreground">Opções de compra</h3>
+      <p className="text-sm text-muted-foreground">Que opção pretende utilizar?</p>
+      <RadioGroup
+        value={value}
+        onValueChange={(v) => onChange(v as PurchaseOptionId)}
+        className="space-y-3"
+      >
+        {(Object.entries(PURCHASE_OPTIONS) as [PurchaseOptionId, typeof PURCHASE_OPTIONS.personal_shopper][]).map(
+          ([id, opt]) => (
+            <label
+              key={id}
+              htmlFor={`${idPrefix}${id}`}
+              className={`flex items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors ${
+                value === id
+                  ? "border-primary bg-background"
+                  : "border-border hover:border-primary/40"
+              }`}
+            >
+              <RadioGroupItem value={id} id={`${idPrefix}${id}`} className="mt-1" />
+              <div>
+                <p className="font-medium text-foreground">
+                  {id === "personal_shopper" ? "1." : "2."} {opt.label}
+                </p>
+                <p className="text-sm text-muted-foreground">{opt.description}</p>
+              </div>
+            </label>
+          ),
+        )}
+      </RadioGroup>
+    </div>
+  );
+}
+
+function OrderSummaryCard({
+  config,
+  items,
+  weightKg,
+}: {
+  config: AppConfig;
+  items: OrderItem[];
+  weightKg: number;
+}) {
+  const totals = calculateOrderTotals(items, weightKg, config);
+
+  return (
+    <div className="bg-primary/5 rounded-xl p-6 border border-primary/10 space-y-3">
+      <p className="text-sm text-muted-foreground uppercase tracking-wider font-semibold text-center">
+        Resumo do serviço completo
+      </p>
+      <div className="space-y-2 text-sm">
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">
+            Produtos ({totals.productsEur.toFixed(2)}€ × {config.exchangeRate} {EXCHANGE_TO})
+          </span>
+          <span className="font-medium">{formatMt(totals.productsMt)} {EXCHANGE_TO}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">
+            Envio ({weightKg} kg × {config.pricePerKg} {EXCHANGE_TO})
+          </span>
+          <span className="font-medium">{formatMt(totals.shippingMt)} {EXCHANGE_TO}</span>
+        </div>
+        <div className="border-t border-primary/20 pt-3 flex justify-between items-center">
+          <span className="font-semibold text-foreground">Total estimado</span>
+          <span className="text-2xl font-bold text-primary">
+            {formatMt(totals.totalMt)} {EXCHANGE_TO}
+          </span>
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground italic text-center">
+        * Valores estimados. O total final será confirmado pela {BRAND_NAME} após validação dos artigos.
+      </p>
+    </div>
+  );
+}
+
+function ExchangeRateSection() {
+  const { toast } = useToast();
+  const [items, setItems] = useState<OrderItem[]>([createEmptyItem()]);
+  const [weight, setWeight] = useState([1]);
+  const [purchaseOption, setPurchaseOption] = useState<PurchaseOptionId>("personal_shopper");
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+
+  const { data: rawConfig, isLoading } = useQuery<Partial<AppConfig>>({
+    queryKey: ["/api/config"],
+  });
+
+  const config = withConfigDefaults(rawConfig);
+  const exchangeRate = config.exchangeRate;
+
+  const handleWhatsApp = () => {
+    if (!items.some((i) => i.link.trim())) {
+      toast({
+        title: "Artigos em falta",
+        description: "Adicione pelo menos um link de artigo antes de continuar.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const message = buildWhatsAppOrderMessage({
+      config,
+      purchaseOption,
+      items,
+      weightKg: weight[0],
+      name: customerName.trim() || undefined,
+      phone: customerPhone.trim() || undefined,
+    });
+    openWhatsApp(config, message);
+  };
+
+  const totals = calculateOrderTotals(items, weight[0], config);
+
+  return (
+    <section id="orcamento" className="py-20 bg-background scroll-mt-16" data-testid="section-calculator">
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto">
+          {isLoading && !rawConfig ? (
+            <Skeleton className="h-96 w-full rounded-xl mb-4" />
+          ) : null}
           <Card className="p-8 border-primary/20 bg-card/50 backdrop-blur-sm">
             <div className="text-center mb-8">
-              <Badge variant="secondary" className="mb-4">Orçamento Instantâneo</Badge>
-              <h2 className="text-3xl font-bold text-foreground">Calculadora de Peso</h2>
-              <p className="text-muted-foreground mt-2">Insira o link do artigo e estime o custo de envio</p>
+              <Badge variant="secondary" className="mb-4">Taxa de Câmbio & Orçamento</Badge>
+              <h2 className="text-3xl font-bold text-foreground">Quanto vai pagar pelo serviço?</h2>
+              <p className="text-muted-foreground mt-2">
+                Escolha a opção de compra, indique os artigos e veja o total em {EXCHANGE_TO}
+              </p>
             </div>
 
-            <div className="space-y-8">
-              <div className="space-y-2">
-                <Label htmlFor="product-link">Link do Artigo</Label>
-                <div className="relative">
-                  <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input 
-                    id="product-link"
-                    placeholder="https://www.zara.com/pt/pt/casaco..."
-                    className="pl-10"
-                    value={link}
-                    onChange={(e) => setLink(e.target.value)}
-                  />
+            <Card className="p-5 mb-8 bg-primary/10 border-primary/30">
+              <div className="flex items-center justify-center gap-3 flex-wrap">
+                <ArrowLeftRight className="w-6 h-6 text-primary" />
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">Taxa de câmbio {BRAND_NAME}</p>
+                  <p className="text-3xl font-bold text-primary" data-testid="text-exchange-rate">
+                    1 {EXCHANGE_FROM} = {exchangeRate} {EXCHANGE_TO}
+                  </p>
+                  <p className="text-sm text-foreground mt-2 font-medium">
+                    1 Euro está para {exchangeRate} Meticais
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    O valor em euros do produto é multiplicado por {exchangeRate} automaticamente
+                  </p>
                 </div>
+              </div>
+            </Card>
+
+            <div className="space-y-8">
+              <PurchaseOptionsPicker
+                value={purchaseOption}
+                onChange={setPurchaseOption}
+                idPrefix="orcamento-"
+              />
+
+              <div>
+                <h3 className="font-semibold text-foreground mb-4">Artigos, tamanhos e quantidades</h3>
+                <OrderItemsEditor
+                  items={items}
+                  onChange={setItems}
+                  exchangeRate={exchangeRate}
+                />
               </div>
 
               <div className="space-y-4">
                 <div className="flex justify-between">
-                  <Label>Peso Estimado: <span className="text-primary font-bold">{weight[0]}kg</span></Label>
-                  <span className="text-sm text-muted-foreground">Máx. 50kg</span>
+                  <Label>
+                    Peso estimado: <span className="text-primary font-bold">{weight[0]} kg</span>
+                  </Label>
+                  <span className="text-sm text-muted-foreground">Máx. 50 kg</span>
                 </div>
-                <Slider
-                  value={weight}
-                  onValueChange={setWeight}
-                  max={50}
-                  step={0.5}
-                  min={0.5}
-                />
+                <Slider value={weight} onValueChange={setWeight} max={50} step={0.5} min={0.5} />
               </div>
 
-              <div className="bg-primary/5 rounded-xl p-6 border border-primary/10 text-center">
-                <p className="text-sm text-muted-foreground uppercase tracking-wider font-semibold mb-2">Total Estimado</p>
-                <div className="flex items-center justify-center gap-2">
-                  <span className="text-4xl font-bold text-primary">{total}</span>
-                  <span className="text-xl font-semibold text-muted-foreground">{config?.currency || "MT"}</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-4 italic">
-                  * Este valor é uma estimativa baseada no peso indicado. O valor final será confirmado após receção do artigo.
+              <OrderSummaryCard config={config} items={items} weightKg={weight[0]} />
+
+              {totals.productsEur > 0 && (
+                <p className="text-center text-sm text-muted-foreground">
+                  Exemplo: {totals.productsEur.toFixed(2)}€ × {exchangeRate} ={" "}
+                  <strong className="text-primary">
+                    {formatMt(totals.productsMt)} {EXCHANGE_TO}
+                  </strong>{" "}
+                  (produtos) + envio
                 </p>
+              )}
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="orcamento-name">Nome (para o WhatsApp)</Label>
+                  <Input
+                    id="orcamento-name"
+                    placeholder="O seu nome"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="orcamento-phone">Telefone / WhatsApp</Label>
+                  <Input
+                    id="orcamento-phone"
+                    placeholder="+258 84 000 0000"
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                  />
+                </div>
               </div>
 
-              <Button 
-                size="lg" 
-                className="w-full gap-2 text-lg h-14" 
-                onClick={handleOrder}
-                disabled={!link}
+              <Button
+                size="lg"
+                className="w-full gap-2 text-lg h-14 bg-green-600 hover:bg-green-700"
+                onClick={handleWhatsApp}
               >
                 <SiWhatsapp className="w-5 h-5" />
-                Encomendar via WhatsApp
+                Enviar encomenda completa via WhatsApp
               </Button>
             </div>
           </Card>
@@ -591,8 +859,12 @@ function RecentProductsSection() {
                     {p.image ? (
                       <img
                         src={p.image}
-                        alt={p.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        alt={`${p.name} — ${p.store}`}
+                        title={`${p.name} (${p.store})`}
+                        loading="lazy"
+                        decoding="async"
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
                           const target = e.currentTarget;
                           target.style.display = "none";
@@ -763,10 +1035,10 @@ function AboutSection() {
               Sobre Nós
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6" data-testid="text-about-title">
-              P2M EXPRESS — A Sua Ponte Entre Portugal e Moçambique
+              {BRAND_NAME} — A Sua Ponte Entre Portugal e Moçambique
             </h2>
             <p className="text-muted-foreground mb-6 leading-relaxed" data-testid="text-about-paragraph-1">
-              A <strong className="text-foreground">P2M EXPRESS</strong> nasceu da vontade de aproximar as pessoas às marcas e produtos que amam. Somos especialistas em compras e envio de artigos das melhores lojas portuguesas para Moçambique.
+              A <strong className="text-foreground">{BRAND_NAME}</strong> nasceu da vontade de aproximar as pessoas às marcas e produtos que amam. Somos especialistas em compras e envio de artigos das melhores lojas portuguesas para Moçambique.
             </p>
             <p className="text-muted-foreground mb-8 leading-relaxed" data-testid="text-about-paragraph-2">
               A nossa missão é simples: tornar as compras internacionais acessíveis, seguras e rápidas para todos. Com uma equipa dedicada e um processo simplificado, garantimos que cada encomenda chega em perfeitas condições.
@@ -820,9 +1092,18 @@ function AboutSection() {
   );
 }
 
+const contactSchema = z.object({
+  name: z.string().min(2, "Indique o seu nome"),
+  email: z.string().email("Email inválido"),
+  phone: z.string().optional(),
+  message: z.string().min(10, "A mensagem deve ter pelo menos 10 caracteres"),
+});
+
 function ContactSection() {
   const { toast } = useToast();
-  const form = useForm({
+
+  const form = useForm<z.infer<typeof contactSchema>>({
+    resolver: zodResolver(contactSchema),
     defaultValues: {
       name: "",
       email: "",
@@ -832,10 +1113,11 @@ function ContactSection() {
   });
 
   const mutation = useMutation({
-    mutationFn: (data: any) => apiRequest("POST", "/api/contact", data),
+    mutationFn: (data: { name: string; email: string; phone?: string; message: string }) =>
+      apiRequest("POST", "/api/contact", data),
     onSuccess: () => {
       toast({
-        title: "Mensagem Enviada",
+        title: "Mensagem enviada",
         description: "Agradecemos o seu contacto. Responderemos em breve.",
       });
       form.reset();
@@ -845,33 +1127,28 @@ function ContactSection() {
   return (
     <section id="contacto" className="py-20 bg-muted/30 scroll-mt-16" data-testid="section-contact">
       <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto grid lg:grid-cols-2 gap-12">
-          <div>
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-10">
             <Badge variant="secondary" className="mb-4">Contacto</Badge>
-            <h2 className="text-3xl font-bold text-foreground mb-6">Estamos aqui para ajudar</h2>
-            <p className="text-muted-foreground mb-8">Prefere enviar uma mensagem direta? Preencha o formulário e a nossa equipa entrará em contacto.</p>
-
-            <div className="space-y-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                  <Mail className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-bold">Email</h4>
-                  <p className="text-sm text-muted-foreground">p2mexpress@gmail.com</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                  <SiWhatsapp className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-bold">WhatsApp</h4>
-                  <p className="text-sm text-muted-foreground">+258 82 372 0155</p>
-                </div>
-              </div>
-            </div>
+            <h2 className="text-3xl font-bold text-foreground mb-4">Fale com a {BRAND_NAME}</h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              Para fazer uma encomenda com opção de compra, artigos e orçamento completo, utilize a secção{" "}
+              <a href="#orcamento" className="text-primary font-medium hover:underline">
+                Taxa de Câmbio & Orçamento
+              </a>
+              . Aqui pode enviar outras dúvidas.
+            </p>
           </div>
+
+          <Card className="p-6 mb-6 border-primary/20 bg-primary/5">
+            <p className="text-sm text-center text-muted-foreground">
+              Quer encomendar?{" "}
+              <a href="#orcamento" className="text-primary font-semibold hover:underline inline-flex items-center gap-1">
+                Ir para Orçamento e Encomendar
+                <ArrowRight className="w-4 h-4" />
+              </a>
+            </p>
+          </Card>
 
           <Card className="p-8 border-primary/10">
             <Form {...form}>
@@ -882,7 +1159,9 @@ function ContactSection() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nome</FormLabel>
-                      <FormControl><Input placeholder="Seu nome" {...field} /></FormControl>
+                      <FormControl>
+                        <Input placeholder="O seu nome" {...field} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -893,7 +1172,22 @@ function ContactSection() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Email</FormLabel>
-                      <FormControl><Input placeholder="seu@email.com" {...field} /></FormControl>
+                      <FormControl>
+                        <Input placeholder="seu@email.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telefone (opcional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="+258 84 000 0000" {...field} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -904,17 +1198,34 @@ function ContactSection() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Mensagem</FormLabel>
-                      <FormControl><Textarea placeholder="Como podemos ajudar?" className="min-h-[120px]" {...field} /></FormControl>
+                      <FormControl>
+                        <Textarea placeholder="Como podemos ajudar?" className="min-h-[120px]" {...field} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full h-12 text-base" disabled={mutation.isPending}>
-                  {mutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
-                  Enviar Mensagem
+                <Button type="submit" className="w-full h-12" disabled={mutation.isPending}>
+                  {mutation.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <Send className="w-4 h-4 mr-2" />
+                  )}
+                  Enviar mensagem
                 </Button>
               </form>
             </Form>
+
+            <div className="flex flex-wrap gap-6 pt-6 mt-6 border-t border-border text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-primary" />
+                p2mexpress@gmail.com
+              </div>
+              <div className="flex items-center gap-2">
+                <SiWhatsapp className="w-4 h-4 text-primary" />
+                +258 82 372 0155
+              </div>
+            </div>
           </Card>
         </div>
       </div>
@@ -947,7 +1258,7 @@ function Footer() {
             <div className="mb-4" data-testid="img-footer-logo">
               <img
                 src={logoTransparent}
-                alt="P2M Express"
+                alt={BRAND_NAME}
                 className="h-24 w-auto object-contain"
               />
             </div>
@@ -984,7 +1295,7 @@ function Footer() {
               {[
                 { label: "Como Funciona", href: "#como-funciona" },
                 { label: "Lojas", href: "#lojas" },
-                { label: "Calculadora", href: "#calculadora" },
+                { label: "Orçamento", href: "#orcamento" },
                 { label: "FAQ", href: "#faq" },
                 { label: "Contacto", href: "#contacto" },
               ].map((link) => (
@@ -1023,7 +1334,7 @@ function Footer() {
 
         <div className="border-t border-border pt-8 text-center">
           <p className="text-sm text-muted-foreground" data-testid="text-footer-copyright">
-            © {new Date().getFullYear()} P2M EXPRESS. Todos os direitos reservados.
+            © {new Date().getFullYear()} {BRAND_NAME}. Todos os direitos reservados.
           </p>
         </div>
       </div>
@@ -1064,7 +1375,7 @@ function Navbar() {
   const navLinks = [
     { label: "Como Funciona", href: "#como-funciona" },
     { label: "Lojas", href: "#lojas" },
-    { label: "Calculadora", href: "#calculadora" },
+    { label: "Orçamento", href: "#orcamento" },
     { label: "FAQ", href: "#faq" },
     { label: "Contacto", href: "#contacto" },
   ];
@@ -1092,11 +1403,11 @@ function Navbar() {
               href="#" 
               className="flex items-center" 
               data-testid="link-logo"
-              aria-label="P2M EXPRESS - Página inicial"
+              aria-label={`${BRAND_NAME} - Página inicial`}
             >
               <img
                 src={logoTransparent}
-                alt="P2M Express"
+                alt={BRAND_NAME}
                 className="h-16 w-auto object-contain"
                 data-testid="img-logo-navbar"
               />
@@ -1201,7 +1512,7 @@ export default function Home() {
         <HeroSection />
         <HowItWorksSection />
         <RecentProductsSection />
-        <CostCalculator />
+        <ExchangeRateSection />
         <StoresSection />
         <PromotionsSection />
         <TestimonialsSection />

@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { getAppConfig } from "./envConfig";
 import { z } from "zod";
 
 const contactMessageSchema = z.object({
@@ -50,15 +51,8 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/config", async (req, res) => {
-    res.json({
-      pricePerKg: 1400,
-      currency: "MT",
-      deliveryDays: 5,
-      whatsappNumber: "258823720155",
-      whatsappMessage: "Olá, gostaria de fazer a seguinte encomenda:",
-      instagramHandle: "p2mexpress",
-    });
+  app.get("/api/config", async (_req, res) => {
+    res.json(getAppConfig());
   });
 
   app.get("/api/testimonials", async (req, res) => {

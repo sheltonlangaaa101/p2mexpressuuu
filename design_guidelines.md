@@ -1,4 +1,4 @@
-# Nia Express Design Guidelines
+# P2M Express Design Guidelines
 
 ## Design Approach
 **Reference-Based Approach**: Drawing inspiration from premium e-commerce platforms (ASOS, Zara) combined with modern service marketplaces (Uber, Airbnb) to create a trustworthy, elegant shopping concierge experience.
